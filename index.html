@@ -8,750 +8,667 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:           #ffffff;
-      --surface:      #f8f9fb;
-      --border:       #e2e5ec;
-      --accent:       #6c63ff;
-      --accent-h:     #5750d9;
-      --text:         #1a1d2e;
-      --muted:        #8b90a7;
-      --success:      #16a34a;
-      --error:        #dc2626;
-      --radius:       10px;
+      --bg:       #ffffff;
+      --surface:  #f8f9fb;
+      --border:   #e2e5ec;
+      --accent:   #6c63ff;
+      --accent-h: #5750d9;
+      --text:     #1a1d2e;
+      --muted:    #8b90a7;
+      --success:  #16a34a;
+      --radius:   10px;
     }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
+      background: var(--bg); color: var(--text);
     }
 
-    /* ── 로그인 화면 ─────────────────────────────────────────────── */
-    #login-screen {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
-      background: linear-gradient(135deg, #f0eeff 0%, #ffffff 60%);
-    }
+    .phase { display: none; }
+    .phase.active { display: block; }
 
-    .login-box {
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 2.5rem 2rem;
-      width: 100%;
-      max-width: 380px;
-      box-shadow: 0 4px 24px rgba(108,99,255,0.08);
+    /* ── 버튼 공통 ──────────────────────────────────────── */
+    .btn {
+      display: inline-block; padding: 0.75rem 1.5rem;
+      background: var(--accent); color: #fff;
+      font-size: 0.95rem; font-weight: 700;
+      border: none; border-radius: var(--radius);
+      cursor: pointer; transition: background 0.15s;
     }
-
-    .login-box h1 {
-      font-size: 1.7rem;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-      margin-bottom: 0.3rem;
-    }
-    .login-box h1 span { color: var(--accent); }
-    .login-box .sub {
-      font-size: 0.85rem;
+    .btn:hover { background: var(--accent-h); }
+    .btn-ghost {
+      background: transparent; border: 1.5px solid var(--border);
       color: var(--muted);
-      margin-bottom: 1.75rem;
     }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--accent); background: transparent; }
+    .btn-block { display: block; width: 100%; text-align: center; }
 
-    .field { margin-bottom: 1rem; }
-    .field label {
-      display: block;
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 0.4rem;
-    }
-    .field input {
-      width: 100%;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 0.65rem 0.9rem;
-      font-size: 0.95rem;
-      color: var(--text);
-      background: var(--surface);
-      outline: none;
-      transition: border-color 0.15s, box-shadow 0.15s;
-    }
-    .field input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(108,99,255,0.12);
-      background: #fff;
-    }
+    /* ════════════════════════════════════════════════════
+       PHASE 1 — 설정
+    ════════════════════════════════════════════════════ */
+    #phase-setup { padding: 2.5rem 1rem 4rem; }
+    .setup-wrap  { max-width: 660px; margin: 0 auto; }
 
-    #login-error {
-      font-size: 0.82rem;
-      color: var(--error);
-      margin-bottom: 0.75rem;
-      min-height: 1.2em;
-    }
-
-    /* ── 메인 앱 ─────────────────────────────────────────────────── */
-    #app { display: none; padding: 2.5rem 1rem 4rem; }
-
-    .wrapper { max-width: 680px; margin: 0 auto; }
-
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 2rem;
-    }
-    .header-title h1 {
-      font-size: 1.8rem;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-    }
-    .header-title h1 span { color: var(--accent); }
-    .header-title p { font-size: 0.85rem; color: var(--muted); margin-top: 0.2rem; }
-
-    .header-actions { display: flex; gap: 0.5rem; align-items: center; }
-    .chip {
-      font-size: 0.78rem;
-      font-weight: 600;
-      padding: 0.35rem 0.75rem;
-      border-radius: 99px;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      color: var(--muted);
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .chip:hover { border-color: var(--accent); color: var(--accent); }
+    header { text-align: center; margin-bottom: 2rem; }
+    header h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; }
+    header h1 span { color: var(--accent); }
+    header p { font-size: 0.9rem; color: var(--muted); margin-top: 0.3rem; }
 
     .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.25rem 1.5rem;
-      margin-bottom: 1rem;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-bottom: 1rem;
     }
-
     .card-label {
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      margin-bottom: 0.6rem;
-      display: block;
+      font-size: 0.75rem; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.6rem; display: block;
     }
+    .file-drop {
+      border: 2px dashed var(--border); border-radius: 8px;
+      padding: 1.75rem; text-align: center; cursor: pointer;
+      transition: border-color 0.15s, background 0.15s; position: relative; background: #fff;
+    }
+    .file-drop:hover, .file-drop.drag { border-color: var(--accent); background: rgba(108,99,255,0.03); }
+    .file-drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .drop-icon { font-size: 2rem; }
+    .drop-text { font-size: 0.88rem; color: var(--muted); margin-top: 0.35rem; }
+    .drop-name  { font-size: 0.85rem; color: var(--accent); font-weight: 600; margin-top: 0.4rem; word-break: break-all; }
 
     textarea {
-      width: 100%;
-      background: #fff;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-size: 0.95rem;
-      padding: 0.65rem 0.9rem;
-      outline: none;
-      transition: border-color 0.15s, box-shadow 0.15s;
-      resize: vertical;
-      min-height: 160px;
-      font-family: inherit;
-      line-height: 1.6;
+      width: 100%; background: #fff; border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-size: 0.93rem;
+      padding: 0.65rem 0.9rem; outline: none;
+      transition: border-color 0.15s; resize: vertical; min-height: 160px;
+      font-family: inherit; line-height: 1.6;
     }
-    textarea:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(108,99,255,0.1);
-    }
+    textarea:focus { border-color: var(--accent); }
+    .hint { font-size: 0.78rem; color: var(--muted); margin-top: 0.4rem; }
+    #setup-error { font-size: 0.83rem; color: #dc2626; margin-bottom: 0.75rem; min-height: 1.2em; }
 
-    .hint { font-size: 0.79rem; color: var(--muted); margin-top: 0.4rem; }
+    /* ════════════════════════════════════════════════════
+       PHASE 2 — 타이밍 작업
+    ════════════════════════════════════════════════════ */
+    #phase-tap { height: 100vh; display: none; flex-direction: column; }
+    #phase-tap.active { display: flex; }
 
-    /* 파일 드롭 */
-    .file-drop {
-      border: 2px dashed var(--border);
-      border-radius: var(--radius);
-      padding: 1.75rem;
-      text-align: center;
-      cursor: pointer;
-      transition: border-color 0.15s, background 0.15s;
-      position: relative;
-      background: #fff;
+    .tap-top {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.6rem 1rem; border-bottom: 1px solid var(--border);
+      background: var(--surface); flex-shrink: 0;
     }
-    .file-drop:hover, .file-drop.drag {
-      border-color: var(--accent);
-      background: rgba(108,99,255,0.03);
-    }
-    .file-drop input[type="file"] {
-      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
-    }
-    .drop-icon  { font-size: 2rem; line-height: 1; }
-    .drop-text  { margin-top: 0.4rem; font-size: 0.9rem; color: var(--muted); }
-    .drop-sub   { font-size: 0.78rem; color: #b5bbd0; margin-top: 0.2rem; }
-    .file-name  { font-size: 0.88rem; color: var(--accent); margin-top: 0.5rem; font-weight: 600; word-break: break-all; }
+    .tap-top h2 { font-size: 0.95rem; font-weight: 700; }
+    .tap-top .tap-meta { font-size: 0.82rem; color: var(--muted); }
 
-    /* 버튼 */
-    .btn {
-      display: block; width: 100%;
-      padding: 0.9rem;
-      background: var(--accent);
-      color: #fff;
-      font-size: 1rem; font-weight: 700;
-      border: none; border-radius: var(--radius);
-      cursor: pointer;
-      transition: background 0.15s, opacity 0.15s;
-    }
-    .btn:hover   { background: var(--accent-h); }
-    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-    .btn-outline {
-      background: transparent;
-      border: 1.5px solid var(--accent);
-      color: var(--accent);
-    }
-    .btn-outline:hover { background: rgba(108,99,255,0.06); }
+    .tap-body { display: flex; flex: 1; overflow: hidden; }
 
-    /* 상태 메시지 */
-    #status {
-      border-radius: var(--radius);
-      padding: 0.85rem 1rem;
-      font-size: 0.88rem;
+    /* 비디오 */
+    .tap-video-wrap { flex: 1; background: #000; position: relative; display: flex; align-items: center; }
+    .tap-video-wrap video { width: 100%; max-height: 100%; display: block; outline: none; }
+
+    /* 자막 미리보기 (탭 중) */
+    .tap-sub-preview {
+      position: absolute; bottom: 8%; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.72); color: #fff; padding: 0.4rem 1rem;
+      border-radius: 6px; font-size: 1rem; font-weight: 500;
+      max-width: 80%; text-align: center; pointer-events: none;
       display: none;
-      margin-top: 1rem;
-      line-height: 1.55;
-      white-space: pre-line;
-    }
-    #status.info    { background: #f0eeff; border: 1px solid #c8c3ff; color: #4f46a8; display: block; }
-    #status.success { background: #f0fdf4; border: 1px solid #86efac; color: var(--success); display: block; }
-    #status.error   { background: #fef2f2; border: 1px solid #fca5a5; color: var(--error); display: block; }
-
-    /* 진행 바 */
-    .progress-wrap { background: var(--border); border-radius: 99px; height: 5px; margin-top: 0.75rem; overflow: hidden; display: none; }
-    .progress-wrap.show { display: block; }
-    .progress-bar { height: 100%; background: var(--accent); border-radius: 99px; }
-    .progress-bar.indeterminate { width: 40%; animation: slide 1.2s ease-in-out infinite; }
-    @keyframes slide { 0% { transform: translateX(-200%); } 100% { transform: translateX(400%); } }
-
-    /* 결과 */
-    #result-section { display: none; margin-top: 1.25rem; }
-
-    .stats { display: flex; gap: 0.75rem; margin-bottom: 1rem; }
-    .stat {
-      flex: 1; background: var(--surface); border: 1px solid var(--border);
-      border-radius: 8px; padding: 0.75rem; text-align: center;
-    }
-    .stat .num { font-size: 1.5rem; font-weight: 800; color: var(--accent); }
-    .stat .lbl { font-size: 0.73rem; color: var(--muted); margin-top: 0.1rem; font-weight: 500; }
-
-    #preview-box {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 1rem 1.25rem;
-      font-family: 'Consolas', 'Monaco', monospace;
-      font-size: 0.8rem; line-height: 1.75;
-      max-height: 300px; overflow-y: auto;
-      white-space: pre; color: #555e80;
     }
 
-    /* 모달 공통 */
-    .modal-overlay {
-      position: fixed; inset: 0;
-      background: rgba(0,0,0,0.35);
-      display: none; align-items: center; justify-content: center;
-      z-index: 100; padding: 1rem;
+    /* 줄 목록 패널 */
+    .tap-panel {
+      width: 340px; flex-shrink: 0; border-left: 1px solid var(--border);
+      display: flex; flex-direction: column; overflow: hidden;
     }
-    .modal-overlay.open { display: flex; }
-    .modal {
-      background: #fff; border-radius: 14px;
-      padding: 1.75rem; width: 100%; max-width: 500px;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+    .tap-panel-head {
+      padding: 0.75rem 1rem; border-bottom: 1px solid var(--border);
+      font-size: 0.78rem; color: var(--muted); font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.05em; flex-shrink: 0;
     }
-    .modal h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 1.25rem; }
-    .usage-row {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 0.7rem 0; border-bottom: 1px solid var(--border);
-    }
-    .usage-row:last-child { border-bottom: none; }
-    .usage-name { font-weight: 600; font-size: 0.9rem; }
-    .usage-meta { font-size: 0.78rem; color: var(--muted); margin-top: 0.1rem; }
-    .usage-count { font-size: 1.3rem; font-weight: 800; color: var(--accent); }
-    .modal-close {
-      margin-top: 1.25rem; width: 100%; padding: 0.65rem;
-      border: 1px solid var(--border); border-radius: 8px;
-      background: var(--surface); color: var(--muted);
-      font-size: 0.9rem; cursor: pointer;
-    }
-    .modal-close:hover { border-color: var(--accent); color: var(--accent); }
+    .lines-list { flex: 1; overflow-y: auto; padding: 0.5rem; }
 
-    /* API 키 소진 팝업 */
-    .key-modal-icon { font-size: 2.5rem; text-align: center; margin-bottom: 0.75rem; }
-    .key-modal-desc {
-      font-size: 0.88rem; color: var(--muted); line-height: 1.6;
-      margin-bottom: 1.25rem; text-align: center;
+    .line-item {
+      padding: 0.55rem 0.75rem; border-radius: 7px; margin-bottom: 0.3rem;
+      font-size: 0.88rem; line-height: 1.4; transition: background 0.1s;
+      display: flex; align-items: flex-start; gap: 0.5rem;
     }
-    .key-modal-desc a { color: var(--accent); text-decoration: underline; }
-    .key-input-wrap { position: relative; margin-bottom: 0.75rem; }
-    .key-input-wrap input {
-      width: 100%; border: 1.5px solid var(--border); border-radius: 8px;
-      padding: 0.7rem 0.9rem; font-size: 0.9rem; color: var(--text);
-      outline: none; transition: border-color 0.15s;
-      font-family: monospace;
+    .line-item .lnum {
+      font-size: 0.72rem; color: var(--muted); min-width: 1.5rem; margin-top: 0.1rem; flex-shrink: 0;
     }
-    .key-input-wrap input:focus { border-color: var(--accent); }
-    .key-modal-error { font-size: 0.82rem; color: var(--error); margin-bottom: 0.75rem; min-height: 1.2em; }
+    .line-item .ltext { flex: 1; }
+    .line-item .ltime { font-size: 0.72rem; color: var(--success); font-family: monospace; flex-shrink: 0; margin-top: 0.1rem; }
 
-    footer {
-      text-align: center; margin-top: 3rem;
-      color: #c0c5d8; font-size: 0.78rem;
+    .line-item.done    { background: #f0fdf4; color: #166534; }
+    .line-item.current {
+      background: var(--accent); color: #fff;
+      font-weight: 600;
     }
+    .line-item.current .lnum  { color: rgba(255,255,255,0.7); }
+    .line-item.current .ltime { color: rgba(255,255,255,0.8); }
+    .line-item.upcoming { color: var(--muted); }
+
+    /* 탭 컨트롤 바 */
+    .tap-controls {
+      border-top: 1px solid var(--border); padding: 0.75rem 1rem;
+      background: var(--surface); flex-shrink: 0;
+    }
+    .kbd-hints { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.6rem; }
+    .kbd-hint  { font-size: 0.75rem; color: var(--muted); display: flex; align-items: center; gap: 0.25rem; }
+    kbd {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 4px;
+      padding: 0.15rem 0.4rem; font-size: 0.72rem; font-family: monospace;
+    }
+    .tap-flash {
+      text-align: center; font-size: 0.82rem; color: var(--accent);
+      font-weight: 600; height: 1.2em; margin-bottom: 0.4rem;
+      transition: opacity 0.3s;
+    }
+
+    /* ════════════════════════════════════════════════════
+       PHASE 3 — 검수 & 편집
+    ════════════════════════════════════════════════════ */
+    #phase-review { padding: 1.5rem 1rem 3rem; }
+    .review-wrap  { max-width: 900px; margin: 0 auto; }
+
+    .review-header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;
+    }
+    .review-header h2 { font-size: 1.1rem; font-weight: 700; }
+    .review-actions { display: flex; gap: 0.5rem; }
+
+    /* 비디오 + 자막 오버레이 */
+    .review-video-wrap {
+      position: relative; background: #000;
+      border-radius: var(--radius); overflow: hidden; margin-bottom: 1rem;
+    }
+    .review-video-wrap video { width: 100%; display: block; max-height: 50vh; object-fit: contain; }
+    .sub-overlay {
+      position: absolute; bottom: 8%; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.72); color: #fff; padding: 0.4rem 1.2rem;
+      border-radius: 6px; font-size: 1.05rem; font-weight: 500;
+      max-width: 85%; text-align: center; pointer-events: none;
+      min-height: 1.8em; display: flex; align-items: center; justify-content: center;
+    }
+
+    /* 편집 테이블 */
+    .cue-table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.87rem; }
+    thead th {
+      background: var(--surface); border-bottom: 2px solid var(--border);
+      padding: 0.55rem 0.75rem; text-align: left;
+      font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted);
+    }
+    tbody tr { border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; }
+    tbody tr:hover   { background: var(--surface); }
+    tbody tr.playing { background: #ede9fe; }
+    td { padding: 0.5rem 0.75rem; vertical-align: middle; }
+    td.cue-num { color: var(--muted); font-size: 0.78rem; width: 2rem; }
+    td.cue-text { line-height: 1.4; }
+
+    .time-input {
+      width: 90px; border: 1px solid var(--border); border-radius: 5px;
+      padding: 0.2rem 0.4rem; font-size: 0.8rem; font-family: monospace;
+      color: var(--text); background: #fff; outline: none;
+    }
+    .time-input:focus { border-color: var(--accent); }
+
+    footer { text-align: center; margin-top: 2.5rem; font-size: 0.78rem; color: #c0c5d8; }
   </style>
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════════════════════
-     로그인 화면
-══════════════════════════════════════════════════════════ -->
-<div id="login-screen">
-  <div class="login-box">
-    <h1>VTT <span>Maker</span></h1>
-    <p class="sub">로그인하여 자막 변환 서비스를 이용하세요</p>
-
-    <div class="field">
-      <label>아이디</label>
-      <input type="text" id="login-id" placeholder="아이디 입력" autocomplete="username" />
-    </div>
-    <div class="field">
-      <label>비밀번호</label>
-      <input type="password" id="login-pw" placeholder="비밀번호 입력" autocomplete="current-password" />
-    </div>
-    <div id="login-error"></div>
-    <button class="btn" onclick="doLogin()">로그인</button>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════════════════════
-     메인 앱
-══════════════════════════════════════════════════════════ -->
-<div id="app">
-  <div class="wrapper">
-
+<!-- ════════════════════════════════════════════════════
+     PHASE 1 — 설정
+════════════════════════════════════════════════════ -->
+<div id="phase-setup" class="phase active">
+  <div class="setup-wrap">
     <header>
-      <div class="header-title">
-        <h1>VTT <span>Maker</span></h1>
-        <p>영상 나레이션 타이밍에 맞춰 스크립트를 VTT 자막 파일로 변환합니다</p>
-      </div>
-      <div class="header-actions">
-        <span class="chip" id="username-chip">👤</span>
-        <span class="chip" onclick="openUsage()">📊 사용량</span>
-        <span class="chip" onclick="doLogout()">로그아웃</span>
-      </div>
+      <h1>VTT <span>Maker</span></h1>
+      <p>영상을 직접 보면서 스페이스바로 자막 타이밍을 지정하세요 · API 불필요</p>
     </header>
 
-    <!-- 영상 파일 -->
     <div class="card">
       <span class="card-label">영상 파일</span>
       <div class="file-drop" id="fileDrop">
         <input type="file" id="videoFile" accept="video/*" />
         <div class="drop-icon">🎬</div>
         <div class="drop-text">파일을 드래그하거나 클릭하여 선택</div>
-        <div class="drop-sub">MP4, MOV, MKV, AVI 등 · 최대 50 MB</div>
-        <div class="file-name" id="fileName"></div>
+        <div class="drop-name" id="fileName"></div>
       </div>
     </div>
 
-    <!-- 스크립트 -->
     <div class="card">
       <span class="card-label">스크립트</span>
-      <textarea id="scriptText" placeholder="📝 자막으로 사용할 스크립트를 붙여 넣으세요."></textarea>
+      <textarea id="scriptInput" placeholder="📝 자막으로 사용할 스크립트를 붙여 넣으세요."></textarea>
       <p class="hint">줄바꿈 한 칸 = 자막 하나. 텍스트는 수정 없이 그대로 유지됩니다.</p>
     </div>
 
-    <button class="btn" id="generateBtn" onclick="generate()">✨ VTT 생성</button>
+    <div id="setup-error"></div>
+    <button class="btn btn-block" onclick="startTapping()">▶ 타이밍 작업 시작</button>
 
-    <div id="status"></div>
-    <div class="progress-wrap" id="progressWrap">
-      <div class="progress-bar indeterminate"></div>
-    </div>
-
-    <div id="result-section">
-      <div class="stats" id="statsRow"></div>
-      <div id="preview-box"></div>
-      <button class="btn btn-outline" style="margin-top:0.75rem" onclick="downloadVTT()">⬇ VTT 다운로드</button>
-    </div>
-
-  </div>
-
-  <footer>
-    <p>파일과 스크립트는 서버로 전송되지 않습니다 (Cloudflare Worker 경유 Gemini API 제외)</p>
-  </footer>
-</div>
-
-<!-- 사용량 모달 -->
-<div class="modal-overlay" id="usageModal" onclick="closeUsage(event)">
-  <div class="modal">
-    <h2>📊 계정별 사용량</h2>
-    <div id="usageContent">불러오는 중…</div>
-    <button class="modal-close" onclick="closeUsage()">닫기</button>
+    <footer style="margin-top:2rem">파일은 브라우저에서만 처리됩니다. 서버 전송 없음.</footer>
   </div>
 </div>
 
-<!-- API 키 소진 팝업 -->
-<div class="modal-overlay" id="keyModal">
-  <div class="modal" style="max-width:420px; text-align:left;">
-    <div class="key-modal-icon">🔑</div>
-    <h2 style="text-align:center;">API 키가 모두 소진되었습니다</h2>
-    <p class="key-modal-desc">
-      서버의 모든 API 키가 한도에 도달했습니다.<br>
-      본인의 Gemini API 키를 입력하면 계속 사용할 수 있습니다.<br>
-      <a href="https://aistudio.google.com/app/apikey" target="_blank">
-        Google AI Studio에서 무료 키 발급 →
-      </a>
-    </p>
-    <div class="key-input-wrap">
-      <input type="password" id="userApiKey" placeholder="AIza..." autocomplete="off" />
+<!-- ════════════════════════════════════════════════════
+     PHASE 2 — 타이밍 작업
+════════════════════════════════════════════════════ -->
+<div id="phase-tap" class="phase">
+
+  <div class="tap-top">
+    <h2>🎬 타이밍 작업</h2>
+    <span class="tap-meta" id="tapMeta"></span>
+    <div style="display:flex;gap:0.5rem">
+      <button class="btn btn-ghost" style="padding:0.4rem 0.85rem;font-size:0.82rem" onclick="resetTapping()">↩ 처음부터</button>
+      <button class="btn" style="padding:0.4rem 0.85rem;font-size:0.82rem" onclick="finishTapping()">완료 →</button>
     </div>
-    <div class="key-modal-error" id="keyModalError"></div>
-    <button class="btn" onclick="retryWithUserKey()">🔄 내 키로 다시 시도</button>
-    <button class="modal-close" onclick="closeKeyModal()">취소</button>
+  </div>
+
+  <div class="tap-body">
+    <!-- 비디오 -->
+    <div class="tap-video-wrap">
+      <video id="tapVideo" controls></video>
+      <div class="tap-sub-preview" id="tapSubPreview"></div>
+    </div>
+
+    <!-- 줄 목록 -->
+    <div class="tap-panel">
+      <div class="tap-panel-head" id="tapPanelHead">다음에 기록할 줄</div>
+      <div class="lines-list" id="linesList"></div>
+
+      <div class="tap-controls">
+        <div class="tap-flash" id="tapFlash"></div>
+        <div class="kbd-hints">
+          <span class="kbd-hint"><kbd>Space</kbd> 현재 줄 기록</span>
+          <span class="kbd-hint"><kbd>Backspace</kbd> 되돌리기</span>
+          <span class="kbd-hint"><kbd>R</kbd> 전체 초기화</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     PHASE 3 — 검수 & 편집
+════════════════════════════════════════════════════ -->
+<div id="phase-review" class="phase">
+  <div class="review-wrap">
+
+    <div class="review-header">
+      <h2>✅ 검수 & 편집</h2>
+      <div class="review-actions">
+        <button class="btn btn-ghost" onclick="goBackToTap()">← 타이밍 재작업</button>
+        <button class="btn" onclick="downloadVTT()">⬇ VTT 다운로드</button>
+      </div>
+    </div>
+
+    <!-- 비디오 -->
+    <div class="review-video-wrap">
+      <video id="reviewVideo" controls></video>
+      <div class="sub-overlay" id="subOverlay"></div>
+    </div>
+
+    <!-- 편집 테이블 -->
+    <div class="cue-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>시작</th>
+            <th>종료</th>
+            <th>자막 텍스트</th>
+          </tr>
+        </thead>
+        <tbody id="cueTableBody"></tbody>
+      </table>
+    </div>
+
+    <div style="display:flex;gap:0.75rem;margin-top:1rem">
+      <button class="btn btn-block btn-ghost" onclick="goBackToTap()">← 타이밍 재작업</button>
+      <button class="btn btn-block" onclick="downloadVTT()">⬇ VTT 다운로드</button>
+    </div>
+
   </div>
 </div>
 
 <script>
-// ══════════════════════════════════════════════════════════
-//  설정 — Worker 배포 후 실제 URL로 교체하세요
-// ══════════════════════════════════════════════════════════
-const WORKER_URL = 'https://vtt-maker.chbnglee26.workers.dev';
+// ══════════════════════════════════════════════════════
+//  상태
+// ══════════════════════════════════════════════════════
+let videoURL  = null;
+let videoName = 'subtitles';
+let lines     = [];   // 스크립트 줄 배열
+let taps      = [];   // 기록된 타임스탬프 (최대 lines.length + 1개)
+let tapIndex  = 0;    // 다음에 기록될 탭 번호
 
-// ── 세션 ───────────────────────────────────────────────────────────────
-let session = null; // { username, password }
-
-function doLogin() {
-  const id = document.getElementById('login-id').value.trim();
-  const pw = document.getElementById('login-pw').value.trim();
-  if (!id || !pw) { showLoginError('아이디와 비밀번호를 입력해주세요.'); return; }
-
-  // 로컬에서는 검증 없이 세션 저장 — 실제 검증은 Worker에서
-  session = { username: id, password: pw };
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  document.getElementById('username-chip').textContent = `👤 ${id}`;
-  showLoginError('');
-}
-
-function doLogout() {
-  session = null;
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('login-id').value = '';
-  document.getElementById('login-pw').value = '';
-}
-
-function showLoginError(msg) {
-  document.getElementById('login-error').textContent = msg;
-}
-
-// Enter 키로 로그인
-document.getElementById('login-pw').addEventListener('keydown', e => {
-  if (e.key === 'Enter') doLogin();
-});
-document.getElementById('login-id').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('login-pw').focus();
-});
-
-// ── 파일 드롭 ──────────────────────────────────────────────────────────
-let vttContent      = '';
-let outputName      = 'subtitles.vtt';
-let pendingFile     = null;   // 키 소진 시 재시도를 위해 보관
-let pendingScript   = '';
-
+// ── Phase 1 : 설정 ────────────────────────────────────
 const fileInput  = document.getElementById('videoFile');
 const fileDrop   = document.getElementById('fileDrop');
 const fileNameEl = document.getElementById('fileName');
 
 fileInput.addEventListener('change', () => {
   const f = fileInput.files[0];
-  if (f) { showFile(f); }
+  if (f) setVideoFile(f);
 });
-
 fileDrop.addEventListener('dragover', e => { e.preventDefault(); fileDrop.classList.add('drag'); });
 fileDrop.addEventListener('dragleave', () => fileDrop.classList.remove('drag'));
 fileDrop.addEventListener('drop', e => {
   e.preventDefault(); fileDrop.classList.remove('drag');
   const f = e.dataTransfer.files[0];
   if (f) {
-    const dt = new DataTransfer(); dt.items.add(f); fileInput.files = dt.files; showFile(f);
+    const dt = new DataTransfer(); dt.items.add(f); fileInput.files = dt.files;
+    setVideoFile(f);
   }
 });
 
-function showFile(f) {
-  fileNameEl.textContent = `${f.name}  (${(f.size/1024/1024).toFixed(1)} MB)`;
-  outputName = f.name.replace(/\.[^.]+$/, '') + '.vtt';
+function setVideoFile(f) {
+  if (videoURL) URL.revokeObjectURL(videoURL);
+  videoURL  = URL.createObjectURL(f);
+  videoName = f.name.replace(/\.[^.]+$/, '');
+  fileNameEl.textContent = f.name;
 }
 
-// ── 생성 ───────────────────────────────────────────────────────────────
-async function generate(userApiKey = '') {
-  const videoFile  = fileInput.files[0];
-  const scriptText = document.getElementById('scriptText').value.trim();
+function startTapping() {
+  const errEl = document.getElementById('setup-error');
+  errEl.textContent = '';
 
-  if (!videoFile)   return setStatus('영상 파일을 선택해주세요.', 'error');
-  if (!scriptText)  return setStatus('스크립트를 입력해주세요.', 'error');
-  if (videoFile.size > 50 * 1024 * 1024) {
-    return setStatus('파일 크기가 50 MB를 초과합니다.\nFFmpeg로 압축하거나 오디오(MP3)만 추출하여 사용해주세요.', 'error');
+  if (!videoURL)  { errEl.textContent = '영상 파일을 선택해주세요.'; return; }
+  const raw = document.getElementById('scriptInput').value.trim();
+  if (!raw)       { errEl.textContent = '스크립트를 입력해주세요.'; return; }
+
+  lines    = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  taps     = [];
+  tapIndex = 0;
+
+  // 영상 연결
+  const tapVid = document.getElementById('tapVideo');
+  tapVid.src = videoURL;
+  tapVid.currentTime = 0;
+
+  showPhase('tap');
+  renderLinesList();
+  updateTapMeta();
+}
+
+// ── Phase 2 : 타이밍 작업 ─────────────────────────────
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('phase-tap').classList.contains('active')) return;
+
+  if (e.code === 'Space') {
+    e.preventDefault();
+    recordTap();
+  } else if (e.code === 'Backspace') {
+    e.preventDefault();
+    undoTap();
+  } else if (e.code === 'KeyR') {
+    e.preventDefault();
+    resetTapping();
   }
+});
 
-  // 재시도를 위해 보관
-  pendingFile   = videoFile;
-  pendingScript = scriptText;
+function recordTap() {
+  if (tapIndex > lines.length) return; // 이미 완료
 
-  const btn = document.getElementById('generateBtn');
-  btn.disabled = true;
-  document.getElementById('result-section').style.display = 'none';
-  showProgress(true);
-  setStatus('🎙 Gemini로 음성 인식 중… 파일 크기에 따라 수십 초가 걸릴 수 있습니다.', 'info');
+  const t = document.getElementById('tapVideo').currentTime;
 
-  try {
-    const formData = new FormData();
-    formData.append('action',   'transcribe');
-    formData.append('username', session.username);
-    formData.append('password', session.password);
-    formData.append('file',     videoFile);
-    if (userApiKey) formData.append('user_api_key', userApiKey);
-
-    const res  = await fetch(WORKER_URL, { method: 'POST', body: formData });
-    const data = await res.json();
-
-    // 키 소진 → 팝업 표시
-    if (res.status === 429 && data.error === 'keys_exhausted') {
-      showProgress(false);
-      btn.disabled = false;
-      setStatus('⚠️ 서버 API 키가 모두 소진되었습니다. 팝업에서 개인 키를 입력해주세요.', 'error');
-      openKeyModal();
-      return;
-    }
-
-    if (!res.ok) {
-      if (res.status === 401) { doLogout(); return; }
-      throw new Error(data.error || `서버 오류 (${res.status})`);
-    }
-
-    if (!data.words || data.words.length === 0) {
-      throw new Error('음성 인식 결과가 없습니다. 영상에 음성이 포함되어 있는지 확인해주세요.');
-    }
-
-    setStatus('⚙️ 스크립트 타이밍 정렬 중…', 'info');
-
-    const segments = parseScript(scriptText);
-    const result   = buildVTT(segments, data.words);
-    vttContent     = result.vtt;
-
-    const pct = Math.round(result.matchedWords / result.totalWords * 100);
-    document.getElementById('statsRow').innerHTML = `
-      <div class="stat"><div class="num">${segments.length}</div><div class="lbl">자막 큐</div></div>
-      <div class="stat"><div class="num">${result.totalWords}</div><div class="lbl">스크립트 단어</div></div>
-      <div class="stat"><div class="num">${pct}%</div><div class="lbl">타이밍 매칭률</div></div>
-    `;
-    document.getElementById('preview-box').textContent = vttContent;
-    document.getElementById('result-section').style.display = 'block';
-    setStatus(`✅ 완료! ${segments.length}개 자막 큐, 단어 매칭률 ${pct}%`, 'success');
-
-  } catch (err) {
-    setStatus('오류: ' + err.message, 'error');
-  } finally {
-    btn.disabled = false;
-    showProgress(false);
-  }
-}
-
-// ── API 키 소진 팝업 ────────────────────────────────────────────────────
-function openKeyModal() {
-  document.getElementById('userApiKey').value = '';
-  document.getElementById('keyModalError').textContent = '';
-  document.getElementById('keyModal').classList.add('open');
-  setTimeout(() => document.getElementById('userApiKey').focus(), 100);
-}
-
-function closeKeyModal() {
-  document.getElementById('keyModal').classList.remove('open');
-}
-
-async function retryWithUserKey() {
-  const key = document.getElementById('userApiKey').value.trim();
-  if (!key) {
-    document.getElementById('keyModalError').textContent = 'API 키를 입력해주세요.';
+  // 시간 역행 방지
+  if (tapIndex > 0 && t <= taps[tapIndex - 1]) {
+    flashMsg('⚠ 이전 타임스탬프보다 앞입니다. 영상을 앞으로 이동 후 다시 누르세요.');
     return;
   }
-  closeKeyModal();
-  await generate(key);
-}
 
-// ── 사용량 모달 ────────────────────────────────────────────────────────
-async function openUsage() {
-  document.getElementById('usageModal').classList.add('open');
-  document.getElementById('usageContent').innerHTML = '불러오는 중…';
+  taps[tapIndex] = t;
+  tapIndex++;
+  renderLinesList();
+  updateTapMeta();
 
-  try {
-    const fd = new FormData();
-    fd.append('action',   'usage');
-    fd.append('username', session.username);
-    fd.append('password', session.password);
+  // 직전 줄 자막 미리보기
+  if (tapIndex > 1) showTapPreview(lines[tapIndex - 2]);
 
-    const res  = await fetch(WORKER_URL, { method: 'POST', body: fd });
-    const data = await res.json();
+  flashMsg(tapIndex <= lines.length
+    ? `✓ ${tapIndex}번 줄 시작 기록 (${fmtSec(t)})`
+    : `✓ 마지막 줄 종료 기록 — 완료 버튼을 누르세요`);
 
-    if (!res.ok) throw new Error(data.error);
-
-    const usage = data.usage || {};
-    const html  = Object.entries(usage).map(([user, info]) => {
-      const last = info.lastUsed
-        ? new Date(info.lastUsed).toLocaleString('ko-KR')
-        : '사용 없음';
-      return `
-        <div class="usage-row">
-          <div>
-            <div class="usage-name">${user}</div>
-            <div class="usage-meta">마지막 사용: ${last}</div>
-          </div>
-          <div class="usage-count">${info.count || 0}회</div>
-        </div>`;
-    }).join('');
-
-    document.getElementById('usageContent').innerHTML = html || '<p style="color:var(--muted)">데이터 없음</p>';
-  } catch (err) {
-    document.getElementById('usageContent').innerHTML = `<p style="color:var(--error)">${err.message}</p>`;
+  if (tapIndex > lines.length) {
+    // 자동 완료
+    setTimeout(finishTapping, 600);
   }
 }
 
-function closeUsage(e) {
-  if (!e || e.target === document.getElementById('usageModal')) {
-    document.getElementById('usageModal').classList.remove('open');
+function undoTap() {
+  if (tapIndex === 0) return;
+  tapIndex--;
+  taps.splice(tapIndex, 1);
+  renderLinesList();
+  updateTapMeta();
+  hideTapPreview();
+  flashMsg('↩ 되돌렸습니다');
+}
+
+function resetTapping() {
+  if (tapIndex > 0 && !confirm('모든 타이밍을 초기화하고 처음부터 다시 하시겠습니까?')) return;
+  taps     = [];
+  tapIndex = 0;
+  const v = document.getElementById('tapVideo');
+  v.pause(); v.currentTime = 0;
+  renderLinesList();
+  updateTapMeta();
+  hideTapPreview();
+  flashMsg('');
+}
+
+function finishTapping() {
+  if (tapIndex < 2) {
+    alert('최소 2번 이상 기록해야 합니다. (줄 시작 + 종료)');
+    return;
   }
+  buildReview();
+  showPhase('review');
 }
 
-// ── 스크립트 파싱 ──────────────────────────────────────────────────────
-function parseScript(text) {
-  return text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+function goBackToTap() {
+  showPhase('tap');
+  renderLinesList();
+  updateTapMeta();
 }
 
-// ── 얼라인먼트 ─────────────────────────────────────────────────────────
-function norm(word) {
-  return word.toLowerCase()
-    .replace(/[\s ]+/g, '')
-    .replace(/[^\w가-힣ㄱ-ㅎㅏ-ㅣ]/g, '');
+function renderLinesList() {
+  const list = document.getElementById('linesList');
+  list.innerHTML = '';
+
+  lines.forEach((line, i) => {
+    const el = document.createElement('div');
+    el.className = 'line-item ' + (
+      i < tapIndex - 1  ? 'done' :
+      i === tapIndex - 1 && tapIndex > 0 ? 'done' :
+      i === tapIndex    ? 'current' : 'upcoming'
+    );
+
+    // tapIndex 기준 해설:
+    // tap[0] = 줄0 시작, tap[1] = 줄1 시작(=줄0 종료), ...
+    // 줄 i가 "done" = taps[i]와 taps[i+1]이 모두 있을 때
+    const isDone = taps[i] !== undefined && taps[i + 1] !== undefined;
+    const hasStart = taps[i] !== undefined;
+
+    el.className = 'line-item ' + (
+      isDone   ? 'done'    :
+      hasStart ? 'current' :
+      i === tapIndex ? 'current' : 'upcoming'
+    );
+
+    const timeStr = taps[i] !== undefined
+      ? (taps[i + 1] !== undefined
+          ? `${fmtSec(taps[i])} → ${fmtSec(taps[i+1])}`
+          : fmtSec(taps[i]))
+      : '';
+
+    el.innerHTML = `
+      <span class="lnum">${i + 1}</span>
+      <span class="ltext">${escHtml(line)}</span>
+      ${timeStr ? `<span class="ltime">${timeStr}</span>` : ''}
+    `;
+    list.appendChild(el);
+  });
+
+  // 현재 줄로 스크롤
+  const currentEl = list.querySelector('.current');
+  if (currentEl) currentEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
-function alignToWhisper(segments, wWords) {
-  const tokens = [];
-  segments.forEach((seg, si) => {
-    seg.split(/\s+/).filter(w => w).forEach((w, wi, arr) => {
-      tokens.push({ raw: w, n: norm(w), si, last: wi === arr.length - 1 });
+function updateTapMeta() {
+  const done  = Math.min(tapIndex, lines.length);
+  const total = lines.length;
+  document.getElementById('tapMeta').textContent = `${done} / ${total} 줄 기록됨`;
+  document.getElementById('tapPanelHead').textContent =
+    tapIndex <= lines.length
+      ? `${tapIndex + 1}번 줄 시작 지점에서 Space`
+      : '완료! → 버튼을 누르세요';
+}
+
+function flashMsg(msg) {
+  const el = document.getElementById('tapFlash');
+  el.textContent = msg;
+  el.style.opacity = '1';
+  clearTimeout(el._timer);
+  if (msg) el._timer = setTimeout(() => { el.style.opacity = '0'; }, 2500);
+}
+
+function showTapPreview(text) {
+  const el = document.getElementById('tapSubPreview');
+  el.textContent = text;
+  el.style.display = 'flex';
+}
+function hideTapPreview() {
+  document.getElementById('tapSubPreview').style.display = 'none';
+}
+
+// ── Phase 3 : 검수 & 편집 ─────────────────────────────
+function buildReview() {
+  const reviewVid = document.getElementById('reviewVideo');
+  reviewVid.src = videoURL;
+  reviewVid.currentTime = 0;
+
+  // 자막 배열 만들기
+  // taps: [s0, s1, s2, ..., sN]  (N = lines.length)
+  // cue i: start = taps[i], end = taps[i+1]
+  // 마지막 줄 end: taps[lines.length] 있으면 그것, 없으면 taps[last] + 2
+  const cues = lines.map((line, i) => ({
+    line,
+    start: taps[i] || 0,
+    end:   taps[i + 1] !== undefined ? taps[i + 1] : (taps[i] || 0) + 2,
+  }));
+
+  renderCueTable(cues);
+
+  // 자막 오버레이
+  const overlay = document.getElementById('subOverlay');
+  reviewVid.addEventListener('timeupdate', () => {
+    const t = reviewVid.currentTime;
+    const cur = cues.find(c => t >= c.start && t < c.end);
+    overlay.textContent = cur ? cur.line : '';
+
+    // 테이블 하이라이트
+    document.querySelectorAll('#cueTableBody tr').forEach((row, i) => {
+      row.classList.toggle('playing', t >= cues[i].start && t < cues[i].end);
+    });
+  });
+}
+
+function renderCueTable(cues) {
+  const tbody = document.getElementById('cueTableBody');
+  tbody.innerHTML = '';
+
+  cues.forEach((cue, i) => {
+    const tr = document.createElement('tr');
+
+    // 행 클릭 → 해당 시간으로 이동
+    tr.addEventListener('click', () => {
+      const v = document.getElementById('reviewVideo');
+      v.currentTime = cue.start;
+      v.play();
+    });
+
+    tr.innerHTML = `
+      <td class="cue-num">${i + 1}</td>
+      <td><input class="time-input" data-idx="${i}" data-field="start" value="${fmtSec(cue.start)}" /></td>
+      <td><input class="time-input" data-idx="${i}" data-field="end"   value="${fmtSec(cue.end)}"   /></td>
+      <td class="cue-text">${escHtml(cue.line)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // 시간 입력 변경 처리
+  tbody.querySelectorAll('.time-input').forEach(input => {
+    input.addEventListener('click', e => e.stopPropagation()); // 행 클릭 방지
+    input.addEventListener('change', e => {
+      const idx   = +e.target.dataset.idx;
+      const field = e.target.dataset.field;
+      const val   = parseSec(e.target.value);
+      if (val === null) { e.target.value = fmtSec(cues[idx][field]); return; }
+      cues[idx][field] = val;
+      e.target.value = fmtSec(val);
     });
   });
 
-  const wn = wWords.map(w => norm(w.word));
-  const map = new Array(tokens.length).fill(-1);
-  let cur = 0;
-
-  for (let ti = 0; ti < tokens.length; ti++) {
-    const tn = tokens[ti].n;
-    if (!tn) continue;
-    const end = Math.min(cur + 40, wn.length);
-    let best = -1;
-
-    for (let wi = cur; wi < end; wi++) {
-      if (wn[wi] === tn) { best = wi; break; }
-    }
-    if (best === -1 && tn.length >= 2) {
-      const pfx = tn.slice(0, Math.ceil(tn.length * 0.7));
-      for (let wi = cur; wi < end; wi++) {
-        if (wn[wi].startsWith(pfx) || tn.startsWith(wn[wi].slice(0, Math.ceil(wn[wi].length * 0.7)))) {
-          best = wi; break;
-        }
-      }
-    }
-    if (best !== -1) { map[ti] = best; cur = best + 1; }
-  }
-
-  return { tokens, map };
+  // VTT 생성용 참조 저장
+  window._cues = cues;
 }
 
-// ── VTT 생성 ───────────────────────────────────────────────────────────
-const MIN_DUR = 1.0;
-
-function buildVTT(segments, wWords) {
-  const { tokens, map } = alignToWhisper(segments, wWords);
-  const times = segments.map(() => ({ start: null, end: null }));
-
-  tokens.forEach((tok, ti) => {
-    const wi = map[ti]; if (wi < 0) return;
-    const ww = wWords[wi];
-    const t  = times[tok.si];
-    if (t.start === null || ww.start < t.start) t.start = ww.start;
-    if (t.end   === null || ww.end   > t.end)   t.end   = ww.end;
-  });
-
-  const totalDur = wWords[wWords.length - 1]?.end ?? 60;
-  interpolate(times, totalDur);
+function downloadVTT() {
+  const cues = window._cues;
+  if (!cues) return;
 
   let vtt = 'WEBVTT\n\n';
-  segments.forEach((seg, i) => {
-    vtt += `${fmt(times[i].start)} --> ${fmt(times[i].end)}\n${seg}\n\n`;
+  cues.forEach(c => {
+    vtt += `${fmtVTT(c.start)} --> ${fmtVTT(c.end)}\n${c.line}\n\n`;
   });
 
-  return {
-    vtt,
-    totalWords:   tokens.filter(t => t.n).length,
-    matchedWords: map.filter(v => v >= 0).length,
-  };
-}
-
-function interpolate(times, totalDur) {
-  const n = times.length;
-  for (let i = 0; i < n; i++) {
-    if (times[i].start !== null) continue;
-    let prevEnd = 0;
-    for (let j = i - 1; j >= 0; j--) { if (times[j].end !== null) { prevEnd = times[j].end; break; } }
-    let nextStart = null, nextIdx = n;
-    for (let j = i + 1; j < n; j++) { if (times[j].start !== null) { nextStart = times[j].start; nextIdx = j; break; } }
-    const step = Math.max(MIN_DUR, ((nextStart ?? totalDur) - prevEnd) / (nextIdx - i));
-    for (let k = i; k < nextIdx; k++) {
-      times[k].start = prevEnd + step * (k - i);
-      times[k].end   = times[k].start + step;
-    }
-  }
-  for (let i = 0; i < n; i++) {
-    const t = times[i];
-    if (!t.start) { t.start = 0; t.end = MIN_DUR; }
-    if (!t.end || t.end < t.start + MIN_DUR) t.end = t.start + MIN_DUR;
-    if (i < n - 1 && times[i+1].start !== null) {
-      const cap = times[i+1].start - 0.05;
-      if (t.end > cap && cap > t.start) t.end = cap;
-    }
-  }
-}
-
-function fmt(sec) {
-  if (!sec || isNaN(sec)) sec = 0;
-  const h = Math.floor(sec / 3600);
-  const m = Math.floor((sec % 3600) / 60);
-  const s = sec % 60;
-  return `${p(h)}:${p(m)}:${s.toFixed(3).padStart(6,'0')}`;
-}
-function p(n) { return String(Math.floor(n)).padStart(2,'0'); }
-
-// ── 다운로드 ───────────────────────────────────────────────────────────
-function downloadVTT() {
-  const blob = new Blob([vttContent], { type: 'text/vtt;charset=utf-8' });
+  const blob = new Blob([vtt], { type: 'text/vtt;charset=utf-8' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
-  a.href = url; a.download = outputName; a.click();
+  a.href = url; a.download = videoName + '.vtt'; a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-// ── UI 헬퍼 ────────────────────────────────────────────────────────────
-function setStatus(msg, type = 'info') {
-  const el = document.getElementById('status');
-  el.textContent = msg; el.className = type;
+// ── 화면 전환 ─────────────────────────────────────────
+function showPhase(name) {
+  ['setup', 'tap', 'review'].forEach(p => {
+    const el = document.getElementById(`phase-${p}`);
+    el.classList.toggle('active', p === name);
+  });
 }
-function showProgress(show) {
-  document.getElementById('progressWrap').className = show ? 'progress-wrap show' : 'progress-wrap';
+
+// ── 시간 유틸 ─────────────────────────────────────────
+function fmtSec(s) {
+  if (s == null || isNaN(s)) s = 0;
+  const m = Math.floor(s / 60);
+  const sec = (s % 60).toFixed(1);
+  return `${m}:${sec.padStart(4, '0')}`;
+}
+
+function parseSec(str) {
+  // 받는 형식: "M:SS.s" 또는 "SS.s" 또는 숫자
+  str = str.trim();
+  if (str.includes(':')) {
+    const parts = str.split(':');
+    const m = parseFloat(parts[0]);
+    const s = parseFloat(parts[1]);
+    if (isNaN(m) || isNaN(s)) return null;
+    return m * 60 + s;
+  }
+  const v = parseFloat(str);
+  return isNaN(v) ? null : v;
+}
+
+function fmtVTT(s) {
+  if (s == null || isNaN(s)) s = 0;
+  const h   = Math.floor(s / 3600);
+  const m   = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  return `${pad2(h)}:${pad2(m)}:${sec.toFixed(3).padStart(6, '0')}`;
+}
+
+function pad2(n) { return String(Math.floor(n)).padStart(2, '0'); }
+function escHtml(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 </script>
 </body>
