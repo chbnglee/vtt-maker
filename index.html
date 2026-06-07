@@ -578,10 +578,6 @@ async function retryWithUserKey() {
     document.getElementById('keyModalError').textContent = 'API 키를 입력해주세요.';
     return;
   }
-  if (!key.startsWith('AIza')) {
-    document.getElementById('keyModalError').textContent = '올바른 Gemini API 키 형식이 아닙니다. (AIza로 시작)';
-    return;
-  }
   closeKeyModal();
   await generate(key);
 }
