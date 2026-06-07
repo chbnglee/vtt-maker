@@ -352,7 +352,7 @@
         <input type="file" id="videoFile" accept="video/*" />
         <div class="drop-icon">🎬</div>
         <div class="drop-text">파일을 드래그하거나 클릭하여 선택</div>
-        <div class="drop-sub">MP4, MOV, MKV, AVI 등 · 최대 25 MB</div>
+        <div class="drop-sub">MP4, MOV, MKV, AVI 등 · 최대 50 MB</div>
         <div class="file-name" id="fileName"></div>
       </div>
     </div>
@@ -493,8 +493,8 @@ async function generate(userApiKey = '') {
 
   if (!videoFile)   return setStatus('영상 파일을 선택해주세요.', 'error');
   if (!scriptText)  return setStatus('스크립트를 입력해주세요.', 'error');
-  if (videoFile.size > 25 * 1024 * 1024) {
-    return setStatus('파일 크기가 25 MB를 초과합니다.\nFFmpeg로 압축하거나 오디오(MP3)만 추출하여 사용해주세요.', 'error');
+  if (videoFile.size > 50 * 1024 * 1024) {
+    return setStatus('파일 크기가 50 MB를 초과합니다.\nFFmpeg로 압축하거나 오디오(MP3)만 추출하여 사용해주세요.', 'error');
   }
 
   // 재시도를 위해 보관
