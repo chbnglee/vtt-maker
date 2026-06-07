@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VTT Maker</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           #ffffff;
+      --surface:      #f8f9fb;
+      --border:       #e2e5ec;
+      --accent:       #6c63ff;
+      --accent-h:     #5750d9;
+      --text:         #1a1d2e;
+      --muted:        #8b90a7;
+      --success:      #16a34a;
+      --error:        #dc2626;
+      --radius:       10px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── 로그인 화면 ─────────────────────────────────────────────── */
+    #login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      background: linear-gradient(135deg, #f0eeff 0%, #ffffff 60%);
+    }
+
+    .login-box {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 4px 24px rgba(108,99,255,0.08);
+    }
+
+    .login-box h1 {
+      font-size: 1.7rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 0.3rem;
+    }
+    .login-box h1 span { color: var(--accent); }
+    .login-box .sub {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 1.75rem;
+    }
+
+    .field { margin-bottom: 1rem; }
+    .field label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.4rem;
+    }
+    .field input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.65rem 0.9rem;
+      font-size: 0.95rem;
+      color: var(--text);
+      background: var(--surface);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .field input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(108,99,255,0.12);
+      background: #fff;
+    }
+
+    #login-error {
+      font-size: 0.82rem;
+      color: var(--error);
+      margin-bottom: 0.75rem;
+      min-height: 1.2em;
+    }
+
+    /* ── 메인 앱 ─────────────────────────────────────────────────── */
+    #app { display: none; padding: 2.5rem 1rem 4rem; }
+
+    .wrapper { max-width: 680px; margin: 0 auto; }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+    }
+    .header-title h1 {
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .header-title h1 span { color: var(--accent); }
+    .header-title p { font-size: 0.85rem; color: var(--muted); margin-top: 0.2rem; }
+
+    .header-actions { display: flex; gap: 0.5rem; align-items: center; }
+    .chip {
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.35rem 0.75rem;
+      border-radius: 99px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .chip:hover { border-color: var(--accent); color: var(--accent); }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .card-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.6rem;
+      display: block;
+    }
+
+    textarea {
+      width: 100%;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.95rem;
+      padding: 0.65rem 0.9rem;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      resize: vertical;
+      min-height: 160px;
+      font-family: inherit;
+      line-height: 1.6;
+    }
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(108,99,255,0.1);
+    }
+
+    .hint { font-size: 0.79rem; color: var(--muted); margin-top: 0.4rem; }
+
+    /* 파일 드롭 */
+    .file-drop {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      position: relative;
+      background: #fff;
+    }
+    .file-drop:hover, .file-drop.drag {
+      border-color: var(--accent);
+      background: rgba(108,99,255,0.03);
+    }
+    .file-drop input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .drop-icon  { font-size: 2rem; line-height: 1; }
+    .drop-text  { margin-top: 0.4rem; font-size: 0.9rem; color: var(--muted); }
+    .drop-sub   { font-size: 0.78rem; color: #b5bbd0; margin-top: 0.2rem; }
+    .file-name  { font-size: 0.88rem; color: var(--accent); margin-top: 0.5rem; font-weight: 600; word-break: break-all; }
+
+    /* 버튼 */
+    .btn {
+      display: block; width: 100%;
+      padding: 0.9rem;
+      background: var(--accent);
+      color: #fff;
+      font-size: 1rem; font-weight: 700;
+      border: none; border-radius: var(--radius);
+      cursor: pointer;
+      transition: background 0.15s, opacity 0.15s;
+    }
+    .btn:hover   { background: var(--accent-h); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid var(--accent);
+      color: var(--accent);
+    }
+    .btn-outline:hover { background: rgba(108,99,255,0.06); }
+
+    /* 상태 메시지 */
+    #status {
+      border-radius: var(--radius);
+      padding: 0.85rem 1rem;
+      font-size: 0.88rem;
+      display: none;
+      margin-top: 1rem;
+      line-height: 1.55;
+      white-space: pre-line;
+    }
+    #status.info    { background: #f0eeff; border: 1px solid #c8c3ff; color: #4f46a8; display: block; }
+    #status.success { background: #f0fdf4; border: 1px solid #86efac; color: var(--success); display: block; }
+    #status.error   { background: #fef2f2; border: 1px solid #fca5a5; color: var(--error); display: block; }
+
+    /* 진행 바 */
+    .progress-wrap { background: var(--border); border-radius: 99px; height: 5px; margin-top: 0.75rem; overflow: hidden; display: none; }
+    .progress-wrap.show { display: block; }
+    .progress-bar { height: 100%; background: var(--accent); border-radius: 99px; }
+    .progress-bar.indeterminate { width: 40%; animation: slide 1.2s ease-in-out infinite; }
+    @keyframes slide { 0% { transform: translateX(-200%); } 100% { transform: translateX(400%); } }
+
+    /* 결과 */
+    #result-section { display: none; margin-top: 1.25rem; }
+
+    .stats { display: flex; gap: 0.75rem; margin-bottom: 1rem; }
+    .stat {
+      flex: 1; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.75rem; text-align: center;
+    }
+    .stat .num { font-size: 1.5rem; font-weight: 800; color: var(--accent); }
+    .stat .lbl { font-size: 0.73rem; color: var(--muted); margin-top: 0.1rem; font-weight: 500; }
+
+    #preview-box {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1rem 1.25rem;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.8rem; line-height: 1.75;
+      max-height: 300px; overflow-y: auto;
+      white-space: pre; color: #555e80;
+    }
+
+    /* 사용량 모달 */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.35);
+      display: none; align-items: center; justify-content: center;
+      z-index: 100; padding: 1rem;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #fff; border-radius: 14px;
+      padding: 1.75rem; width: 100%; max-width: 500px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+    }
+    .modal h2 { font-size: 1.1rem; font-weight: 700; margin-bottom: 1.25rem; }
+    .usage-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.7rem 0; border-bottom: 1px solid var(--border);
+    }
+    .usage-row:last-child { border-bottom: none; }
+    .usage-name { font-weight: 600; font-size: 0.9rem; }
+    .usage-meta { font-size: 0.78rem; color: var(--muted); margin-top: 0.1rem; }
+    .usage-count { font-size: 1.3rem; font-weight: 800; color: var(--accent); }
+    .modal-close {
+      margin-top: 1.25rem; width: 100%; padding: 0.65rem;
+      border: 1px solid var(--border); border-radius: 8px;
+      background: var(--surface); color: var(--muted);
+      font-size: 0.9rem; cursor: pointer;
+    }
+    .modal-close:hover { border-color: var(--accent); color: var(--accent); }
+
+    footer {
+      text-align: center; margin-top: 3rem;
+      color: #c0c5d8; font-size: 0.78rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     로그인 화면
+══════════════════════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1>VTT <span>Maker</span></h1>
+    <p class="sub">로그인하여 자막 변환 서비스를 이용하세요</p>
+
+    <div class="field">
+      <label>아이디</label>
+      <input type="text" id="login-id" placeholder="아이디 입력" autocomplete="username" />
+    </div>
+    <div class="field">
+      <label>비밀번호</label>
+      <input type="password" id="login-pw" placeholder="비밀번호 입력" autocomplete="current-password" />
+    </div>
+    <div id="login-error"></div>
+    <button class="btn" onclick="doLogin()">로그인</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     메인 앱
+══════════════════════════════════════════════════════════ -->
+<div id="app">
+  <div class="wrapper">
+
+    <header>
+      <div class="header-title">
+        <h1>VTT <span>Maker</span></h1>
+        <p>영상 나레이션 타이밍에 맞춰 스크립트를 VTT 자막 파일로 변환합니다</p>
+      </div>
+      <div class="header-actions">
+        <span class="chip" id="username-chip">👤</span>
+        <span class="chip" onclick="openUsage()">📊 사용량</span>
+        <span class="chip" onclick="doLogout()">로그아웃</span>
+      </div>
+    </header>
+
+    <!-- 영상 파일 -->
+    <div class="card">
+      <span class="card-label">영상 파일</span>
+      <div class="file-drop" id="fileDrop">
+        <input type="file" id="videoFile" accept="video/*" />
+        <div class="drop-icon">🎬</div>
+        <div class="drop-text">파일을 드래그하거나 클릭하여 선택</div>
+        <div class="drop-sub">MP4, MOV, MKV, AVI 등 · 최대 25 MB</div>
+        <div class="file-name" id="fileName"></div>
+      </div>
+    </div>
+
+    <!-- 스크립트 -->
+    <div class="card">
+      <span class="card-label">스크립트</span>
+      <textarea id="scriptText" placeholder="📝 자막으로 사용할 스크립트를 붙여 넣으세요."></textarea>
+      <p class="hint">줄바꿈 한 칸 = 자막 하나. 텍스트는 수정 없이 그대로 유지됩니다.</p>
+    </div>
+
+    <button class="btn" id="generateBtn" onclick="generate()">✨ VTT 생성</button>
+
+    <div id="status"></div>
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-bar indeterminate"></div>
+    </div>
+
+    <div id="result-section">
+      <div class="stats" id="statsRow"></div>
+      <div id="preview-box"></div>
+      <button class="btn btn-outline" style="margin-top:0.75rem" onclick="downloadVTT()">⬇ VTT 다운로드</button>
+    </div>
+
+  </div>
+
+  <footer>
+    <p>파일과 스크립트는 서버로 전송되지 않습니다 (Cloudflare Worker 경유 Gemini API 제외)</p>
+  </footer>
+</div>
+
+<!-- 사용량 모달 -->
+<div class="modal-overlay" id="usageModal" onclick="closeUsage(event)">
+  <div class="modal">
+    <h2>📊 계정별 사용량</h2>
+    <div id="usageContent">불러오는 중…</div>
+    <button class="modal-close" onclick="closeUsage()">닫기</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+//  설정 — Worker 배포 후 실제 URL로 교체하세요
+// ══════════════════════════════════════════════════════════
+const WORKER_URL = 'https://vtt-maker.YOUR-SUBDOMAIN.workers.dev';
+
+// ── 세션 ───────────────────────────────────────────────────────────────
+let session = null; // { username, password }
+
+function doLogin() {
+  const id = document.getElementById('login-id').value.trim();
+  const pw = document.getElementById('login-pw').value.trim();
+  if (!id || !pw) { showLoginError('아이디와 비밀번호를 입력해주세요.'); return; }
+
+  // 로컬에서는 검증 없이 세션 저장 — 실제 검증은 Worker에서
+  session = { username: id, password: pw };
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('username-chip').textContent = `👤 ${id}`;
+  showLoginError('');
+}
+
+function doLogout() {
+  session = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-id').value = '';
+  document.getElementById('login-pw').value = '';
+}
+
+function showLoginError(msg) {
+  document.getElementById('login-error').textContent = msg;
+}
+
+// Enter 키로 로그인
+document.getElementById('login-pw').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+document.getElementById('login-id').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('login-pw').focus();
+});
+
+// ── 파일 드롭 ──────────────────────────────────────────────────────────
+let vttContent   = '';
+let outputName   = 'subtitles.vtt';
+
+const fileInput  = document.getElementById('videoFile');
+const fileDrop   = document.getElementById('fileDrop');
+const fileNameEl = document.getElementById('fileName');
+
+fileInput.addEventListener('change', () => {
+  const f = fileInput.files[0];
+  if (f) { showFile(f); }
+});
+
+fileDrop.addEventListener('dragover', e => { e.preventDefault(); fileDrop.classList.add('drag'); });
+fileDrop.addEventListener('dragleave', () => fileDrop.classList.remove('drag'));
+fileDrop.addEventListener('drop', e => {
+  e.preventDefault(); fileDrop.classList.remove('drag');
+  const f = e.dataTransfer.files[0];
+  if (f) {
+    const dt = new DataTransfer(); dt.items.add(f); fileInput.files = dt.files; showFile(f);
+  }
+});
+
+function showFile(f) {
+  fileNameEl.textContent = `${f.name}  (${(f.size/1024/1024).toFixed(1)} MB)`;
+  outputName = f.name.replace(/\.[^.]+$/, '') + '.vtt';
+}
+
+// ── 생성 ───────────────────────────────────────────────────────────────
+async function generate() {
+  const videoFile  = fileInput.files[0];
+  const scriptText = document.getElementById('scriptText').value.trim();
+
+  if (!videoFile)   return setStatus('영상 파일을 선택해주세요.', 'error');
+  if (!scriptText)  return setStatus('스크립트를 입력해주세요.', 'error');
+  if (videoFile.size > 25 * 1024 * 1024) {
+    return setStatus('파일 크기가 25 MB를 초과합니다.\nFFmpeg로 압축하거나 오디오(MP3)만 추출하여 사용해주세요.', 'error');
+  }
+
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = true;
+  document.getElementById('result-section').style.display = 'none';
+  showProgress(true);
+  setStatus('🎙 Gemini로 음성 인식 중… 파일 크기에 따라 수십 초가 걸릴 수 있습니다.', 'info');
+
+  try {
+    const formData = new FormData();
+    formData.append('action',   'transcribe');
+    formData.append('username', session.username);
+    formData.append('password', session.password);
+    formData.append('file',     videoFile);
+
+    const res = await fetch(WORKER_URL, { method: 'POST', body: formData });
+    const data = await res.json();
+
+    if (!res.ok) {
+      if (res.status === 401) { doLogout(); return; }
+      throw new Error(data.error || `서버 오류 (${res.status})`);
+    }
+
+    if (!data.words || data.words.length === 0) {
+      throw new Error('음성 인식 결과가 없습니다. 영상에 음성이 포함되어 있는지 확인해주세요.');
+    }
+
+    setStatus('⚙️ 스크립트 타이밍 정렬 중…', 'info');
+
+    const segments = parseScript(scriptText);
+    const result   = buildVTT(segments, data.words);
+    vttContent     = result.vtt;
+
+    const pct = Math.round(result.matchedWords / result.totalWords * 100);
+    document.getElementById('statsRow').innerHTML = `
+      <div class="stat"><div class="num">${segments.length}</div><div class="lbl">자막 큐</div></div>
+      <div class="stat"><div class="num">${result.totalWords}</div><div class="lbl">스크립트 단어</div></div>
+      <div class="stat"><div class="num">${pct}%</div><div class="lbl">타이밍 매칭률</div></div>
+    `;
+    document.getElementById('preview-box').textContent = vttContent;
+    document.getElementById('result-section').style.display = 'block';
+    setStatus(`✅ 완료! ${segments.length}개 자막 큐, 단어 매칭률 ${pct}%`, 'success');
+
+  } catch (err) {
+    setStatus('오류: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    showProgress(false);
+  }
+}
+
+// ── 사용량 모달 ────────────────────────────────────────────────────────
+async function openUsage() {
+  document.getElementById('usageModal').classList.add('open');
+  document.getElementById('usageContent').innerHTML = '불러오는 중…';
+
+  try {
+    const fd = new FormData();
+    fd.append('action',   'usage');
+    fd.append('username', session.username);
+    fd.append('password', session.password);
+
+    const res  = await fetch(WORKER_URL, { method: 'POST', body: fd });
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error);
+
+    const usage = data.usage || {};
+    const html  = Object.entries(usage).map(([user, info]) => {
+      const last = info.lastUsed
+        ? new Date(info.lastUsed).toLocaleString('ko-KR')
+        : '사용 없음';
+      return `
+        <div class="usage-row">
+          <div>
+            <div class="usage-name">${user}</div>
+            <div class="usage-meta">마지막 사용: ${last}</div>
+          </div>
+          <div class="usage-count">${info.count || 0}회</div>
+        </div>`;
+    }).join('');
+
+    document.getElementById('usageContent').innerHTML = html || '<p style="color:var(--muted)">데이터 없음</p>';
+  } catch (err) {
+    document.getElementById('usageContent').innerHTML = `<p style="color:var(--error)">${err.message}</p>`;
+  }
+}
+
+function closeUsage(e) {
+  if (!e || e.target === document.getElementById('usageModal')) {
+    document.getElementById('usageModal').classList.remove('open');
+  }
+}
+
+// ── 스크립트 파싱 ──────────────────────────────────────────────────────
+function parseScript(text) {
+  return text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+}
+
+// ── 얼라인먼트 ─────────────────────────────────────────────────────────
+function norm(word) {
+  return word.toLowerCase()
+    .replace(/[\s ]+/g, '')
+    .replace(/[^\w가-힣ㄱ-ㅎㅏ-ㅣ]/g, '');
+}
+
+function alignToWhisper(segments, wWords) {
+  const tokens = [];
+  segments.forEach((seg, si) => {
+    seg.split(/\s+/).filter(w => w).forEach((w, wi, arr) => {
+      tokens.push({ raw: w, n: norm(w), si, last: wi === arr.length - 1 });
+    });
+  });
+
+  const wn = wWords.map(w => norm(w.word));
+  const map = new Array(tokens.length).fill(-1);
+  let cur = 0;
+
+  for (let ti = 0; ti < tokens.length; ti++) {
+    const tn = tokens[ti].n;
+    if (!tn) continue;
+    const end = Math.min(cur + 40, wn.length);
+    let best = -1;
+
+    for (let wi = cur; wi < end; wi++) {
+      if (wn[wi] === tn) { best = wi; break; }
+    }
+    if (best === -1 && tn.length >= 2) {
+      const pfx = tn.slice(0, Math.ceil(tn.length * 0.7));
+      for (let wi = cur; wi < end; wi++) {
+        if (wn[wi].startsWith(pfx) || tn.startsWith(wn[wi].slice(0, Math.ceil(wn[wi].length * 0.7)))) {
+          best = wi; break;
+        }
+      }
+    }
+    if (best !== -1) { map[ti] = best; cur = best + 1; }
+  }
+
+  return { tokens, map };
+}
+
+// ── VTT 생성 ───────────────────────────────────────────────────────────
+const MIN_DUR = 1.0;
+
+function buildVTT(segments, wWords) {
+  const { tokens, map } = alignToWhisper(segments, wWords);
+  const times = segments.map(() => ({ start: null, end: null }));
+
+  tokens.forEach((tok, ti) => {
+    const wi = map[ti]; if (wi < 0) return;
+    const ww = wWords[wi];
+    const t  = times[tok.si];
+    if (t.start === null || ww.start < t.start) t.start = ww.start;
+    if (t.end   === null || ww.end   > t.end)   t.end   = ww.end;
+  });
+
+  const totalDur = wWords[wWords.length - 1]?.end ?? 60;
+  interpolate(times, totalDur);
+
+  let vtt = 'WEBVTT\n\n';
+  segments.forEach((seg, i) => {
+    vtt += `${fmt(times[i].start)} --> ${fmt(times[i].end)}\n${seg}\n\n`;
+  });
+
+  return {
+    vtt,
+    totalWords:   tokens.filter(t => t.n).length,
+    matchedWords: map.filter(v => v >= 0).length,
+  };
+}
+
+function interpolate(times, totalDur) {
+  const n = times.length;
+  for (let i = 0; i < n; i++) {
+    if (times[i].start !== null) continue;
+    let prevEnd = 0;
+    for (let j = i - 1; j >= 0; j--) { if (times[j].end !== null) { prevEnd = times[j].end; break; } }
+    let nextStart = null, nextIdx = n;
+    for (let j = i + 1; j < n; j++) { if (times[j].start !== null) { nextStart = times[j].start; nextIdx = j; break; } }
+    const step = Math.max(MIN_DUR, ((nextStart ?? totalDur) - prevEnd) / (nextIdx - i));
+    for (let k = i; k < nextIdx; k++) {
+      times[k].start = prevEnd + step * (k - i);
+      times[k].end   = times[k].start + step;
+    }
+  }
+  for (let i = 0; i < n; i++) {
+    const t = times[i];
+    if (!t.start) { t.start = 0; t.end = MIN_DUR; }
+    if (!t.end || t.end < t.start + MIN_DUR) t.end = t.start + MIN_DUR;
+    if (i < n - 1 && times[i+1].start !== null) {
+      const cap = times[i+1].start - 0.05;
+      if (t.end > cap && cap > t.start) t.end = cap;
+    }
+  }
+}
+
+function fmt(sec) {
+  if (!sec || isNaN(sec)) sec = 0;
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  return `${p(h)}:${p(m)}:${s.toFixed(3).padStart(6,'0')}`;
+}
+function p(n) { return String(Math.floor(n)).padStart(2,'0'); }
+
+// ── 다운로드 ───────────────────────────────────────────────────────────
+function downloadVTT() {
+  const blob = new Blob([vttContent], { type: 'text/vtt;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = outputName; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// ── UI 헬퍼 ────────────────────────────────────────────────────────────
+function setStatus(msg, type = 'info') {
+  const el = document.getElementById('status');
+  el.textContent = msg; el.className = type;
+}
+function showProgress(show) {
+  document.getElementById('progressWrap').className = show ? 'progress-wrap show' : 'progress-wrap';
+}
+</script>
+</body>
+</html>

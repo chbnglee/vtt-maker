@@ -1,0 +1,8 @@
+name            = "vtt-maker"
+main            = "worker.js"
+compatibility_date = "2024-09-23"
+
+# KV 네임스페이스 — 배포 후 Cloudflare 대시보드에서 생성한 ID로 교체하세요
+[[kv_namespaces]]
+binding = "USAGE_KV"
+id      = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
