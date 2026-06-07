@@ -203,36 +203,41 @@ async function transcribeWithGemini(buffer, mimeType, apiKey) {
   return parsed.words ?? [];
 }
 
-// ── Gemini Files API 업로드 (대용량) ─────────────────────────────────
+// ── Gemini Files API 업로드 (대용량 — multipart 방식) ────────────────
 async function uploadToFilesAPI(buffer, mimeType, apiKey) {
-  const initRes = await fetch(`${FILE_API_URL}?uploadType=resumable&key=${apiKey}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Goog-Upload-Protocol': 'resumable',
-      'X-Goog-Upload-Command': 'start',
-      'X-Goog-Upload-Header-Content-Length': buffer.byteLength,
-      'X-Goog-Upload-Header-Content-Type': mimeType,
-    },
-    body: JSON.stringify({ file: { display_name: 'audio' } }),
-  });
+  const boundary = 'vttmaker_' + Date.now();
+  const fileBytes = new Uint8Array(buffer);
+  const enc = new TextEncoder();
 
-  if (!initRes.ok) throw new Error('Files API 업로드 세션 시작 실패');
-  const uploadUrl = initRes.headers.get('X-Goog-Upload-URL');
+  const metadata = JSON.stringify({ file: { display_name: 'audio' } });
+  const head = enc.encode(
+    `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${metadata}\r\n` +
+    `--${boundary}\r\nContent-Type: ${mimeType}\r\n\r\n`
+  );
+  const tail = enc.encode(`\r\n--${boundary}--`);
 
-  const uploadRes = await fetch(uploadUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Length': buffer.byteLength,
-      'X-Goog-Upload-Offset': 0,
-      'X-Goog-Upload-Command': 'upload, finalize',
-    },
-    body: buffer,
-  });
+  const body = new Uint8Array(head.length + fileBytes.length + tail.length);
+  body.set(head, 0);
+  body.set(fileBytes, head.length);
+  body.set(tail, head.length + fileBytes.length);
 
-  if (!uploadRes.ok) throw new Error('Files API 파일 업로드 실패');
-  const fileData = await uploadRes.json();
-  return fileData.file?.uri;
+  const res = await fetch(
+    `${FILE_API_URL}?uploadType=multipart&key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': `multipart/related; boundary=${boundary}` },
+      body,
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(`Files API 업로드 실패 (${res.status}): ${err.error?.message || '알 수 없는 오류'}`);
+  }
+
+  const data = await res.json();
+  if (!data.file?.uri) throw new Error('Files API: 파일 URI를 받지 못했습니다.');
+  return data.file.uri;
 }
 
 // ── 사용량 조회 ───────────────────────────────────────────────────────
