@@ -251,7 +251,7 @@
       white-space: pre; color: #555e80;
     }
 
-    /* 사용량 모달 */
+    /* 모달 공통 */
     .modal-overlay {
       position: fixed; inset: 0;
       background: rgba(0,0,0,0.35);
@@ -280,6 +280,23 @@
       font-size: 0.9rem; cursor: pointer;
     }
     .modal-close:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* API 키 소진 팝업 */
+    .key-modal-icon { font-size: 2.5rem; text-align: center; margin-bottom: 0.75rem; }
+    .key-modal-desc {
+      font-size: 0.88rem; color: var(--muted); line-height: 1.6;
+      margin-bottom: 1.25rem; text-align: center;
+    }
+    .key-modal-desc a { color: var(--accent); text-decoration: underline; }
+    .key-input-wrap { position: relative; margin-bottom: 0.75rem; }
+    .key-input-wrap input {
+      width: 100%; border: 1.5px solid var(--border); border-radius: 8px;
+      padding: 0.7rem 0.9rem; font-size: 0.9rem; color: var(--text);
+      outline: none; transition: border-color 0.15s;
+      font-family: monospace;
+    }
+    .key-input-wrap input:focus { border-color: var(--accent); }
+    .key-modal-error { font-size: 0.82rem; color: var(--error); margin-bottom: 0.75rem; min-height: 1.2em; }
 
     footer {
       text-align: center; margin-top: 3rem;
@@ -376,6 +393,27 @@
   </div>
 </div>
 
+<!-- API 키 소진 팝업 -->
+<div class="modal-overlay" id="keyModal">
+  <div class="modal" style="max-width:420px; text-align:left;">
+    <div class="key-modal-icon">🔑</div>
+    <h2 style="text-align:center;">API 키가 모두 소진되었습니다</h2>
+    <p class="key-modal-desc">
+      서버의 모든 API 키가 한도에 도달했습니다.<br>
+      본인의 Gemini API 키를 입력하면 계속 사용할 수 있습니다.<br>
+      <a href="https://aistudio.google.com/app/apikey" target="_blank">
+        Google AI Studio에서 무료 키 발급 →
+      </a>
+    </p>
+    <div class="key-input-wrap">
+      <input type="password" id="userApiKey" placeholder="AIza..." autocomplete="off" />
+    </div>
+    <div class="key-modal-error" id="keyModalError"></div>
+    <button class="btn" onclick="retryWithUserKey()">🔄 내 키로 다시 시도</button>
+    <button class="modal-close" onclick="closeKeyModal()">취소</button>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════════════════════════════
 //  설정 — Worker 배포 후 실제 URL로 교체하세요
@@ -419,8 +457,10 @@ document.getElementById('login-id').addEventListener('keydown', e => {
 });
 
 // ── 파일 드롭 ──────────────────────────────────────────────────────────
-let vttContent   = '';
-let outputName   = 'subtitles.vtt';
+let vttContent      = '';
+let outputName      = 'subtitles.vtt';
+let pendingFile     = null;   // 키 소진 시 재시도를 위해 보관
+let pendingScript   = '';
 
 const fileInput  = document.getElementById('videoFile');
 const fileDrop   = document.getElementById('fileDrop');
@@ -447,7 +487,7 @@ function showFile(f) {
 }
 
 // ── 생성 ───────────────────────────────────────────────────────────────
-async function generate() {
+async function generate(userApiKey = '') {
   const videoFile  = fileInput.files[0];
   const scriptText = document.getElementById('scriptText').value.trim();
 
@@ -456,6 +496,10 @@ async function generate() {
   if (videoFile.size > 25 * 1024 * 1024) {
     return setStatus('파일 크기가 25 MB를 초과합니다.\nFFmpeg로 압축하거나 오디오(MP3)만 추출하여 사용해주세요.', 'error');
   }
+
+  // 재시도를 위해 보관
+  pendingFile   = videoFile;
+  pendingScript = scriptText;
 
   const btn = document.getElementById('generateBtn');
   btn.disabled = true;
@@ -469,9 +513,19 @@ async function generate() {
     formData.append('username', session.username);
     formData.append('password', session.password);
     formData.append('file',     videoFile);
+    if (userApiKey) formData.append('user_api_key', userApiKey);
 
-    const res = await fetch(WORKER_URL, { method: 'POST', body: formData });
+    const res  = await fetch(WORKER_URL, { method: 'POST', body: formData });
     const data = await res.json();
+
+    // 키 소진 → 팝업 표시
+    if (res.status === 429 && data.error === 'keys_exhausted') {
+      showProgress(false);
+      btn.disabled = false;
+      setStatus('⚠️ 서버 API 키가 모두 소진되었습니다. 팝업에서 개인 키를 입력해주세요.', 'error');
+      openKeyModal();
+      return;
+    }
 
     if (!res.ok) {
       if (res.status === 401) { doLogout(); return; }
@@ -504,6 +558,32 @@ async function generate() {
     btn.disabled = false;
     showProgress(false);
   }
+}
+
+// ── API 키 소진 팝업 ────────────────────────────────────────────────────
+function openKeyModal() {
+  document.getElementById('userApiKey').value = '';
+  document.getElementById('keyModalError').textContent = '';
+  document.getElementById('keyModal').classList.add('open');
+  setTimeout(() => document.getElementById('userApiKey').focus(), 100);
+}
+
+function closeKeyModal() {
+  document.getElementById('keyModal').classList.remove('open');
+}
+
+async function retryWithUserKey() {
+  const key = document.getElementById('userApiKey').value.trim();
+  if (!key) {
+    document.getElementById('keyModalError').textContent = 'API 키를 입력해주세요.';
+    return;
+  }
+  if (!key.startsWith('AIza')) {
+    document.getElementById('keyModalError').textContent = '올바른 Gemini API 키 형식이 아닙니다. (AIza로 시작)';
+    return;
+  }
+  closeKeyModal();
+  await generate(key);
 }
 
 // ── 사용량 모달 ────────────────────────────────────────────────────────

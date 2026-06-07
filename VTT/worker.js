@@ -1,7 +1,12 @@
 // ═══════════════════════════════════════════════════════════════════
 //  VTT Maker — Cloudflare Worker
-//  배포 전 반드시 아래 ACCOUNTS 값을 본인 계정으로 변경하세요.
-//  GEMINI_API_KEY 는 코드에 절대 입력하지 말고 Wrangler secret으로 설정하세요.
+//
+//  [Cloudflare 대시보드 Secrets 설정]
+//  GEMINI_API_KEYS : 쉼표로 구분된 키 목록 (유료키를 앞에)
+//                    예) AIza유료키1,AIza무료키1,AIza무료키2
+//
+//  [Cloudflare 대시보드 Bindings 설정]
+//  USAGE_KV : KV 네임스페이스 연결
 // ═══════════════════════════════════════════════════════════════════
 
 const ACCOUNTS = {
@@ -12,12 +17,10 @@ const ACCOUNTS = {
 };
 
 // ── Gemini 설정 ──────────────────────────────────────────────────────
-const GEMINI_MODEL  = 'gemini-1.5-flash';
+const GEMINI_MODEL   = 'gemini-1.5-flash';
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 const FILE_API_URL   = 'https://generativelanguage.googleapis.com/upload/v1beta/files';
-
-// 인라인 base64 전송 한계 (18 MB 초과 시 Files API 사용)
-const INLINE_LIMIT = 18 * 1024 * 1024;
+const INLINE_LIMIT   = 18 * 1024 * 1024; // 18 MB 초과 시 Files API
 
 // ── CORS ─────────────────────────────────────────────────────────────
 const CORS = {
@@ -47,7 +50,6 @@ export default {
     const username = (body.get('username') || '').trim();
     const password = (body.get('password') || '').trim();
 
-    // 인증
     if (!username || !ACCOUNTS[username] || ACCOUNTS[username] !== password) {
       return jsonRes({ error: '아이디 또는 비밀번호가 올바르지 않습니다.' }, 401);
     }
@@ -68,22 +70,75 @@ async function handleTranscribe(body, username, env) {
   const file = body.get('file');
   if (!file) return jsonRes({ error: '파일이 없습니다.' }, 400);
 
-  const apiKey   = env.GEMINI_API_KEY;
-  if (!apiKey)   return jsonRes({ error: 'GEMINI_API_KEY 환경변수가 설정되지 않았습니다.' }, 500);
-
   const buffer   = await file.arrayBuffer();
   const mimeType = file.type || guessMime(file.name || '');
 
-  // Gemini 호출
-  const words = await transcribeWithGemini(buffer, mimeType, apiKey);
+  // 서버 키 목록 (쉼표 구분, 유료키 우선)
+  const serverKeys = (env.GEMINI_API_KEYS || '')
+    .split(',')
+    .map(k => k.trim())
+    .filter(k => k.length > 0);
 
-  // 사용량 기록
-  await recordUsage(username, file.name || 'unknown', env);
+  // 사용자가 직접 입력한 개인 키 (소진 시 팝업으로 받음)
+  const userKey = (body.get('user_api_key') || '').trim();
+
+  // 시도 순서: 서버 키들 → 개인 키
+  const keysToTry = [...serverKeys, ...(userKey ? [userKey] : [])];
+
+  if (keysToTry.length === 0) {
+    return jsonRes({ error: 'no_keys', message: 'API 키가 설정되지 않았습니다.' }, 503);
+  }
+
+  const { words, exhausted, usedKey } = await transcribeWithFallback(buffer, mimeType, keysToTry);
+
+  if (exhausted) {
+    // 모든 키 소진 → 프론트에 팝업 요청 신호 전달
+    return jsonRes({ error: 'keys_exhausted', message: '모든 API 키가 한도에 도달했습니다.' }, 429);
+  }
+
+  // 사용량 기록 (개인 키 사용 시도 포함)
+  await recordUsage(username, file.name || 'unknown', usedKey === userKey ? 'user_key' : 'server_key', env);
 
   return jsonRes({ words });
 }
 
-// ── Gemini 호출 ───────────────────────────────────────────────────────
+// ── 키 순환 호출 ──────────────────────────────────────────────────────
+async function transcribeWithFallback(buffer, mimeType, keys) {
+  let lastErr = null;
+
+  for (const key of keys) {
+    try {
+      const words = await transcribeWithGemini(buffer, mimeType, key);
+      return { words, exhausted: false, usedKey: key };
+    } catch (err) {
+      if (isQuotaError(err)) {
+        // 이 키는 한도 초과 → 다음 키 시도
+        lastErr = err;
+        console.warn(`Key quota exceeded, trying next key...`);
+        continue;
+      }
+      // 쿼터 외 오류(잘못된 키, 네트워크 등)는 바로 throw
+      throw err;
+    }
+  }
+
+  // 모든 키 소진
+  return { words: null, exhausted: true, usedKey: null };
+}
+
+// 쿼터/한도 초과 여부 판별
+function isQuotaError(err) {
+  const msg = (err.message || '').toLowerCase();
+  return (
+    msg.includes('quota') ||
+    msg.includes('rate limit') ||
+    msg.includes('resource_exhausted') ||
+    msg.includes('429') ||
+    msg.includes('too many requests')
+  );
+}
+
+// ── Gemini generateContent 호출 ───────────────────────────────────────
 async function transcribeWithGemini(buffer, mimeType, apiKey) {
   const prompt = [
     'Transcribe every spoken word in this audio/video file with precise timestamps.',
@@ -111,7 +166,6 @@ async function transcribeWithGemini(buffer, mimeType, apiKey) {
     required: ['words'],
   };
 
-  // 파일 크기에 따라 인라인 vs Files API 분기
   let filePart;
   if (buffer.byteLength <= INLINE_LIMIT) {
     filePart = { inline_data: { mime_type: mimeType, data: bufToBase64(buffer) } };
@@ -134,8 +188,10 @@ async function transcribeWithGemini(buffer, mimeType, apiKey) {
   });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    const msg = err.error?.message || `Gemini API 오류 (HTTP ${res.status})`;
+    const errBody = await res.json().catch(() => ({}));
+    const msg = errBody.error?.message || `HTTP ${res.status}`;
+    // 429는 쿼터 에러로 분류
+    if (res.status === 429 || res.status === 503) throw new Error(`quota: ${msg}`);
     throw new Error(msg);
   }
 
@@ -149,7 +205,6 @@ async function transcribeWithGemini(buffer, mimeType, apiKey) {
 
 // ── Gemini Files API 업로드 (대용량) ─────────────────────────────────
 async function uploadToFilesAPI(buffer, mimeType, apiKey) {
-  // 1단계: resumable upload 세션 시작
   const initRes = await fetch(`${FILE_API_URL}?uploadType=resumable&key=${apiKey}`, {
     method: 'POST',
     headers: {
@@ -165,7 +220,6 @@ async function uploadToFilesAPI(buffer, mimeType, apiKey) {
   if (!initRes.ok) throw new Error('Files API 업로드 세션 시작 실패');
   const uploadUrl = initRes.headers.get('X-Goog-Upload-URL');
 
-  // 2단계: 파일 전송
   const uploadRes = await fetch(uploadUrl, {
     method: 'POST',
     headers: {
@@ -193,7 +247,7 @@ async function handleUsage(username, env) {
 }
 
 // ── 사용량 기록 ───────────────────────────────────────────────────────
-async function recordUsage(username, filename, env) {
+async function recordUsage(username, filename, keyType, env) {
   if (!env.USAGE_KV) return;
 
   const key  = `usage:${username}`;
@@ -202,18 +256,18 @@ async function recordUsage(username, filename, env) {
   data.count += 1;
   data.lastUsed = new Date().toISOString();
   data.history  = [
-    { at: data.lastUsed, file: filename },
+    { at: data.lastUsed, file: filename, key: keyType },
     ...(data.history || []),
-  ].slice(0, 200); // 최근 200건 보관
+  ].slice(0, 200);
 
   await env.USAGE_KV.put(key, JSON.stringify(data));
 }
 
 // ── 유틸 ─────────────────────────────────────────────────────────────
 function bufToBase64(buffer) {
-  const bytes  = new Uint8Array(buffer);
-  const CHUNK  = 0x8000;
-  let binary   = '';
+  const bytes = new Uint8Array(buffer);
+  const CHUNK = 0x8000;
+  let binary  = '';
   for (let i = 0; i < bytes.length; i += CHUNK) {
     binary += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
   }
@@ -222,8 +276,10 @@ function bufToBase64(buffer) {
 
 function guessMime(filename) {
   const ext = filename.split('.').pop().toLowerCase();
-  const map  = { mp4: 'video/mp4', mov: 'video/quicktime', mkv: 'video/x-matroska',
-                 avi: 'video/x-msvideo', webm: 'video/webm', mp3: 'audio/mpeg',
-                 m4a: 'audio/mp4', wav: 'audio/wav', ogg: 'audio/ogg' };
+  const map  = {
+    mp4: 'video/mp4', mov: 'video/quicktime', mkv: 'video/x-matroska',
+    avi: 'video/x-msvideo', webm: 'video/webm', mp3: 'audio/mpeg',
+    m4a: 'audio/mp4', wav: 'audio/wav', ogg: 'audio/ogg',
+  };
   return map[ext] || 'video/mp4';
 }
